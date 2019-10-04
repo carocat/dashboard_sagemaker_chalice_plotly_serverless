@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "app_name": "sentiment-application",
+  "stages": {
+    "dev": {
+      "api_gateway_stage": "sentiment"
+    }
+  },
+  "lambda_timeout" : 60,
+  "lambda_memory_size": 512,
+  "manage_iam_role":false,
+  "iam_role_arn":"REPLACE_WITH_ROLE_ARN",
+  "environment_variables" : { "SAGEMAKER_ENDPOINT" : "REPLACE_WITH_SAGEMAKER_ENDPOINT" }
+}
