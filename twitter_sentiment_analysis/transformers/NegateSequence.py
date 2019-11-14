@@ -25,18 +25,17 @@ class NegateSequence(Transformer):
             negation = False
             delims = "?.,!:;"
             text_line = []
-            remove_digits = str.maketrans('', '', digits)
             words = review.split()
             for word in words:
-                res = word.translate(remove_digits)
-                stripped = res.strip(delims).lower()
-                negated = "nott_" + res if negation else stripped
+                stripped = word.strip(delims).lower()
+                negated = "nott_" + word if negation else stripped
                 text_line.append(negated)
                 if any(neg in word for neg in ["n't"]) or word in ['no', 'not']:
                     negation = True
                 if any(c in word for c in delims):
                     negation = False
             return ' '.join(text_line)
+            #return text_line
 
         udf_c = udf(negate_sequence)
         df = df.withColumn(self.outputCol, udf_c(self.inputCol))

@@ -1,6 +1,8 @@
 from pyspark.ml import Transformer
-from pyspark.sql.functions import udf
 from pyspark.sql import DataFrame
+from pyspark.sql.functions import udf
+import itertools
+from itertools import groupby
 import re
 
 class PreProcessingGeneral(Transformer):
@@ -22,14 +24,24 @@ class PreProcessingGeneral(Transformer):
 
     def _transform(self, df: DataFrame) -> DataFrame:
 
-        def pre_processing_general(review):
-
-            HAPPY_EMO = r'([xX;:]-?[dD)]|:-?[\)]|[;:][pP])'
-            SAD_EMO = r" (:'?[/|\(]) "
+        def pre_processing_general(review):   
 
             # mark emoticons as happy or sad
-            review = re.sub(HAPPY_EMO, ' happyemoticons ', review)
-            review = re.sub(SAD_EMO, ' sademoticons ', review)
+            review = re.sub(r'([xX;:]-?[dD)]|:-?[\)]|[;:][pP])', ' happyemoticons ', review)
+            review = re.sub(r"(:'?[/|\(])", ' sademoticons ', review)
+            
+            #replace repetition chars and keep only one 'halo there this is an example'
+            review = ''.join(c[0] for c in itertools.groupby(review.lower()))
+
+            #replace duplicate words
+            no_dupes = ([k for k, v in groupby(review.split())])
+            print('No duplicates:', no_dupes)
+            review = ' '.join(no_dupes)
+
+            #remove numbers, fractions, etc...
+            review =  re.sub(r"[-]?[0-9]+[,.]?[0-9]*([\/][0-9]+[,.]?[0-9]*)*", '', review)
+
+            
 
             # delete mentions the mentions
             review = re.sub(r'@[a-zA-Z0-9_]* ', "", review)
@@ -39,11 +51,12 @@ class PreProcessingGeneral(Transformer):
             review = re.sub(r'[-\n]', '', review)
 
             # Removing links
-            review = re.sub(r"https?:\S*", "", review)
+            review = re.sub(r"https?:\S*", '', review)
             review = re.sub(r'http?:\S*', '', review)
 
             #remove punctuaction except delimiters ?.,!:;
             review =  re.sub(r"[$%&()*+/<=>@[\]^_`{|}~]", '', review)
+
 
             return " ".join(review.split())
 
